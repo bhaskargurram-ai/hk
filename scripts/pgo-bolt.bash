@@ -95,18 +95,6 @@ if [ "$PGO_BUILD_TOOL" = "cross" ]; then
 	export CROSS_CONTAINER_OPTS="${CROSS_CONTAINER_OPTS:-} -v $PGO_DATA_DIR:$PGO_DATA_DIR:rw"
 fi
 
-# Keep PGO Rust-only on macOS. The cc crate mirrors -Cprofile-generate and
-# -Cprofile-use from RUSTFLAGS into the C compiler, so vendored libgit2 and
-# OpenSSL would be instrumented by Apple clang, whose profile format follows
-# Xcode's LLVM rather than rustc's. When the two disagree, every profile write
-# aborts with "Runtime and instrumentation version mismatch" and training
-# produces no .profraw files. cc appends environment flags after the ones it
-# inherits from rustc, so these overrides win.
-if [ "$(uname -s)" = "Darwin" ]; then
-	export CFLAGS="${CFLAGS:-} -fno-profile-generate -fno-profile-use"
-	export CXXFLAGS="${CXXFLAGS:-} -fno-profile-generate -fno-profile-use"
-fi
-
 build() {
 	local rustflags=$1
 	# target_arg is intentionally word-split: an empty value must disappear.
